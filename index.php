@@ -5,48 +5,54 @@ use Psr\Http\Message\ResponseInterface as Response;
 
 require __DIR__ . '/vendor/autoload.php';
 
+require_once __DIR__ . '/model/helloClass.php';
+
 $config['displayErrorDetails'] = true;
 $config['addContentLengthHeader'] = false;
 
-$config['db']['host'] = "127.0.0.1";
-$config['db']['port'] = "3306";
-$config['db']['user'] = "root";
-$config['db']['pass'] = "p@55w0rd";
-$config['db']['dbname'] = "test";
-
-$con = new PDO('mysql:host=127.0.0.1:3306;dbname=test', 'root', 'p@55w0rd');
-$con->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-$con->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-echo '<br/>';
-print_r($con->getAvailableDrivers());
-echo '<br/>';
-echo $con->getAttribute(PDO::ATTR_DRIVER_NAME);
-echo '<br/>';
-foreach ($con->query('SELECT * from M_USER') as $row) {
-    print_r($row);
-}
-echo '<br/>';
-foreach ($con->query('SELECT * from M_PRODUCT') as $row) {
-    print_r($row);
-}
-echo '<br/>';
-foreach ($con->query(
-        'SELECT '
-        . 'M_USER.name AS uName,'
-        . 'M_USER.value AS uValue,'
-        . 'M_PRODUCT.name as pName,'
-        . 'M_PRODUCT.value AS pValue '
-        . 'from '
-        . 'M_PRODUCT '
-        . 'INNER JOIN '
-        . 'M_USER ON (M_PRODUCT.user_id=M_USER.id)') as $row) {
-    print_r($row);
-}
-$con = null;
+//$config['db']['host'] = "127.0.0.1";
+//$config['db']['port'] = "3306";
+//$config['db']['user'] = "root";
+//$config['db']['pass'] = "p@55w0rd";
+//$config['db']['dbname'] = "test";
+//
+//$con = new PDO('mysql:host=127.0.0.1:3306;dbname=test', 'root', 'p@55w0rd');
+//$con->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+//$con->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+//echo '<br/>';
+//print_r($con->getAvailableDrivers());
+//echo '<br/>';
+//echo $con->getAttribute(PDO::ATTR_DRIVER_NAME);
+//echo '<br/>';
+//foreach ($con->query('SELECT * from M_USER') as $row) {
+//    print_r($row);
+//}
+//echo '<br/>';
+//foreach ($con->query('SELECT * from M_PRODUCT') as $row) {
+//    print_r($row);
+//}
+//echo '<br/>';
+//foreach ($con->query(
+//        'SELECT '
+//        . 'M_USER.name AS uName,'
+//        . 'M_USER.value AS uValue,'
+//        . 'M_PRODUCT.name as pName,'
+//        . 'M_PRODUCT.value AS pValue '
+//        . 'from '
+//        . 'M_PRODUCT '
+//        . 'INNER JOIN '
+//        . 'M_USER ON (M_PRODUCT.user_id=M_USER.id)') as $row) {
+//    print_r($row);
+//}
+//$con = null;
 
 $app = new \Slim\App(["settings" => $config]);
 
 $container = $app->getContainer();
+
+$container['HomeController'] = function($c) {
+    return new HomeController($c);
+};
 
 $container['logger'] = function($c) {
     $logger = new \Monolog\Logger('logger');
@@ -75,7 +81,7 @@ $app->group('/hello', function() use ($app) {
 
         return $response;
     };
-    $app->get('/name/{name}', function(Request $request, Response $response) {
+    $app->get('/name/{name}', function($request, $response) {
 
         if ($request->hasHeader('user_agent')) {
             echo implode("<br/> ", $request->getHeader('user_agent'));
@@ -138,5 +144,8 @@ $app->group('/users/{id:[0-9]+}', function () {
         echo 'reset-password';
     })->setName('user-password-reset');
 });
+
+$app->get('/', test::class . ':home');
+$app->get('/homectrl', \HomeController::class . ':home');
 
 $app->run();
